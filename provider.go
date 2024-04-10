@@ -137,7 +137,11 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 
 	var addedRecords []libdns.Record
 	for _, record := range records {
-		command := fmt.Sprintf("ADDRR %s %s %s:%d", record.Name, record.Type, record.Value, record.TTL.Seconds())
+		if int(record.TTL.Seconds()) == 0 {
+			record.TTL = 300 * time.Second
+		}
+
+		command := fmt.Sprintf("ADDRR %s %s %s:%d", record.Name, record.Type, record.Value, int(record.TTL.Seconds()))
 		_, err := p.sendCommand(conn, command)
 		if err != nil {
 			log.Printf("Failed to add record: %v", err)
@@ -161,6 +165,10 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, records []libdns
 	for _, record := range records {
 		// Assuming ADDRR is used for both adding and updating records
 		// Special handling for SRV records as an example
+		if int(record.TTL.Seconds()) == 0 {
+			record.TTL = 300 * time.Second
+		}
+
 		command := fmt.Sprintf("ADDRR %s %s %s", record.Name, record.Type, record.Value)
 		if record.Type == "SRV" {
 			command = fmt.Sprintf("ADDRR %s %s %s:%d", record.Name, record.Type, record.Value, int(record.TTL.Seconds()))
@@ -185,8 +193,14 @@ func (p *Provider) DeleteRecords(ctx context.Context, zone string, records []lib
 
 	var deletedRecords []libdns.Record
 	for _, record := range records {
+		var command string
+		if int(record.TTL.Seconds()) == 0 {
+			command = fmt.Sprintf("DELRR %s %s %s", record.Name, record.Type, record.Value)
+		} else {
+			command = fmt.Sprintf("DELRR %s %s %s:%d", record.Name, record.Type, record.Value, int(record.TTL.Seconds()))
+		}
+
 		// The protocol seems to support deleting by host and optionally by record type and target
-		command := fmt.Sprintf("DELRR %s %s %s", record.Name, record.Type, record.Value)
 		if _, err := p.sendCommand(conn, command); err != nil {
 			log.Printf("Failed to delete record: %v", err)
 			continue
