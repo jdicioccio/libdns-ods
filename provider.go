@@ -14,7 +14,6 @@ import (
 
 type Provider struct {
 	Host string `json:"host,omitempty"`
-	Port int    `json:"port,omitempty"`
 	User string `json:"user,omitempty"`
 	Pass string `json:"pass,omitempty"`
 }
@@ -36,7 +35,7 @@ func (p *Provider) sendCommand(conn net.Conn, command string) (string, error) {
 }
 
 func (p *Provider) connect() (net.Conn, error) {
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", p.Host, p.Port))
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", p.Host, 7070))
 	if err != nil {
 		return nil, err
 	}
