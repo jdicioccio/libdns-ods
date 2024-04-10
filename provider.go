@@ -137,7 +137,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, records []lib
 
 	var addedRecords []libdns.Record
 	for _, record := range records {
-		command := fmt.Sprintf("ADDRR %s.%s %s %s", record.Name, record.Type, record.Value)
+		command := fmt.Sprintf("ADDRR %s.%s %s %s", record.Name, zone, record.Type, record.Value)
 		_, err := p.sendCommand(conn, command)
 		if err != nil {
 			log.Printf("Failed to add record: %v", err)
